@@ -4,7 +4,7 @@ CredLink is an on-chain credit bureau that stores a canonical score per wallet. 
 
 **Architecture**
 ```
-[HTTP Trigger] -> [Fetch Scoring API] -> [Compute Hashes] -> [Consensus] -> [Chainwrite setScore()]
+HTTP Trigger -> Fetch Scoring API -> Compute Hashes -> Consensus -> Chainwrite setScore()]
 ```
 
 **Components**
@@ -65,7 +65,7 @@ CRE Workflow (HTTP trigger)
   ↓
 Consensus → Chainwrite
   ↓
-CreditBureau (Sepolia)
+CreditBureau
   ↓
 User UI (score + loan quote)
 ```
