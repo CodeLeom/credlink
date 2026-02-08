@@ -1,0 +1,29 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "user", "type": "address" },
+      { "internalType": "uint16", "name": "score", "type": "uint16" },
+      { "internalType": "bytes32", "name": "modelVersion", "type": "bytes32" },
+      { "internalType": "bytes32", "name": "signalsHash", "type": "bytes32" }
+    ],
+    "name": "setScore",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "user", "type": "address" }
+    ],
+    "name": "getScore",
+    "outputs": [
+      { "internalType": "uint16", "name": "score", "type": "uint16" },
+      { "internalType": "uint8", "name": "tier", "type": "uint8" },
+      { "internalType": "uint40", "name": "updatedAt", "type": "uint40" },
+      { "internalType": "bytes32", "name": "modelVersion", "type": "bytes32" },
+      { "internalType": "bytes32", "name": "signalsHash", "type": "bytes32" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

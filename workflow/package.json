@@ -1,0 +1,19 @@
+{
+  "name": "credlink-workflow",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "simulate": "tsx src/workflow.ts --mode simulate",
+    "broadcast": "tsx src/workflow.ts --mode broadcast",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
