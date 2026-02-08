@@ -1,16 +1,31 @@
+import { Box, Button, Container, Stack, Typography } from "@mui/material";
+
 export default function HomePage() {
   return (
-    <div style={{ maxWidth: 640, margin: "40px auto", padding: 16 }}>
-      <h1>CredLink</h1>
-      <p>Go to the user or admin portal.</p>
-      <ul>
-        <li>
-          <a href="/user">User Portal</a>
-        </li>
-        <li>
-          <a href="/admin">Admin Portal</a>
-        </li>
-      </ul>
-    </div>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #f7f7f2 0%, #e6f4f1 45%, #e6eefb 100%)",
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      <Container maxWidth="sm">
+        <Stack spacing={2}>
+          <Typography variant="h2">CredLink</Typography>
+          <Typography>
+            On-chain credit bureau with admin approval, CRE scoring, and DeFi loan quoting.
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Button variant="contained" href="/user">
+              User Portal
+            </Button>
+            <Button variant="outlined" href="/admin">
+              Admin Portal
+            </Button>
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   );
 }

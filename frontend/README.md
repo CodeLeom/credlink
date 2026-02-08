@@ -18,6 +18,7 @@ npm run dev
 - `NEXT_PUBLIC_CREDIT_BUREAU_ADDRESS`
 - `NEXT_PUBLIC_LOAN_MANAGER_ADDRESS`
 - `ADMIN_TOKEN` (admin API token)
+- `NEXT_PUBLIC_ADMIN_TOKEN` (optional, expose token in browser for admin actions)
 
 **Admin Token**
 - The admin page includes a token input field.

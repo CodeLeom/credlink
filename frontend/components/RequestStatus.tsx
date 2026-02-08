@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { getRequestStatus } from "../lib/api";
 
 type Props = {
@@ -40,12 +41,16 @@ export default function RequestStatus({ requestId, onScored }: Props) {
   }, [requestId, onScored]);
 
   return (
-    <div style={{ border: "1px solid #eee", padding: 12, borderRadius: 12 }}>
-      <h3>Status</h3>
-      <p>Request ID: {requestId}</p>
-      <p>Status: {status}</p>
-      {txHash ? <p>Tx: {txHash}</p> : null}
-      {wallet ? <p>Wallet: {wallet}</p> : null}
-    </div>
+    <Card elevation={0} sx={{ border: "1px solid #e9e9e2" }}>
+      <CardContent>
+        <Stack spacing={1}>
+          <Typography variant="h6">Request Status</Typography>
+          <Typography variant="body2">ID: {requestId}</Typography>
+          <Typography variant="body2">Status: {status}</Typography>
+          {txHash ? <Typography variant="body2">Tx: {txHash}</Typography> : null}
+          {wallet ? <Typography variant="body2">Wallet: {wallet}</Typography> : null}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

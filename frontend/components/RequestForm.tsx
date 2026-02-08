@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
+import { Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 import { createRequest } from "../lib/api";
 
 type Props = {
@@ -39,33 +40,47 @@ export default function RequestForm({ onCreated }: Props) {
   };
 
   return (
-    <div style={{ border: "1px solid #ddd", padding: 16, borderRadius: 12 }}>
-      <h2>User Request</h2>
-      <div style={{ marginBottom: 12 }}>
-        {isConnected ? (
-          <div>
-            <div style={{ marginBottom: 8 }}>Wallet: {address}</div>
-            <button onClick={() => disconnect()}>Disconnect</button>
-          </div>
-        ) : (
-          <button onClick={() => connect({ connector: injected() })} disabled={isPending}>
-            Connect Wallet
-          </button>
-        )}
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          style={{ width: "100%", padding: 8 }}
-        />
-      </div>
-      <button onClick={handleSubmit} disabled={submitting}>
-        {submitting ? "Submitting..." : "Request Score"}
-      </button>
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-    </div>
+    <Card elevation={0} sx={{ border: "1px solid #e2e2dd" }}>
+      <CardContent>
+        <Stack spacing={2}>
+          <Typography variant="h5">Request Credit Score</Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+            {isConnected ? (
+              <>
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  Wallet: {address}
+                </Typography>
+                <Button variant="outlined" onClick={() => disconnect()}>
+                  Disconnect
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={() => connect({ connector: injected() })}
+                disabled={isPending}
+              >
+                Connect Wallet
+              </Button>
+            )}
+          </Stack>
+          <TextField
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            fullWidth
+          />
+          <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Submitting..." : "Request Score"}
+          </Button>
+          {error ? (
+            <Typography variant="body2" color="error">
+              {error}
+            </Typography>
+          ) : null}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

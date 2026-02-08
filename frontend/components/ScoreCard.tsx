@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { useReadContract } from "wagmi";
 import { creditBureauAbi, creditBureauAddress } from "../lib/contracts";
 
@@ -29,25 +30,42 @@ export default function ScoreCard({ wallet }: Props) {
   const parsed = useMemo(() => {
     if (!data) return undefined;
     const [score, tier, updatedAt] = data as unknown as [number, number, number];
-    return { score: Number(score), tier: Number(tier), updatedAt: Number(updatedAt) };
+    const timestamp = Number(updatedAt) * 1000;
+    return {
+      score: Number(score),
+      tier: Number(tier),
+      updatedAt: timestamp ? new Date(timestamp).toLocaleString() : "N/A",
+    };
   }, [data]);
 
   if (!wallet) {
-    return <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 12 }}>No wallet</div>;
+    return (
+      <Card elevation={0} sx={{ border: "1px solid #ecece6" }}>
+        <CardContent>
+          <Typography variant="body2">Connect a wallet to view on-chain score.</Typography>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <div style={{ padding: 16, border: "1px solid #ddd", borderRadius: 12 }}>
-      <h3>On-chain Score</h3>
-      {parsed ? (
-        <div>
-          <p>Score: {parsed.score}</p>
-          <p>Tier: {tierLabel(parsed.tier)}</p>
-          <p>Updated: {parsed.updatedAt}</p>
-        </div>
-      ) : (
-        <p>Loading on-chain score...</p>
-      )}
-    </div>
+    <Card elevation={0} sx={{ border: "1px solid #e0e0da" }}>
+      <CardContent>
+        <Stack spacing={1.5}>
+          <Typography variant="h6">On-chain Score</Typography>
+          {parsed ? (
+            <>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="h3">{parsed.score}</Typography>
+                <Chip label={tierLabel(parsed.tier)} color="primary" variant="outlined" />
+              </Stack>
+              <Typography variant="body2">Last updated: {parsed.updatedAt}</Typography>
+            </>
+          ) : (
+            <Typography variant="body2">Loading on-chain score...</Typography>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button, Stack, Typography } from "@mui/material";
 import { approveRequest, rejectRequest } from "../lib/api";
 
 type Props = {
@@ -31,14 +32,18 @@ export default function ApproveReject({ id, token, onAction }: Props) {
   };
 
   return (
-    <div>
-      <button onClick={() => handle("approve")} disabled={loading}>
+    <Stack spacing={1} direction={{ xs: "column", sm: "row" }} alignItems="center">
+      <Button variant="contained" onClick={() => handle("approve")} disabled={loading}>
         Approve
-      </button>
-      <button onClick={() => handle("reject")} disabled={loading} style={{ marginLeft: 8 }}>
+      </Button>
+      <Button variant="outlined" onClick={() => handle("reject")} disabled={loading}>
         Reject
-      </button>
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
-    </div>
+      </Button>
+      {error ? (
+        <Typography variant="body2" color="error">
+          {error}
+        </Typography>
+      ) : null}
+    </Stack>
   );
 }
