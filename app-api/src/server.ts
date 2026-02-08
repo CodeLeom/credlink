@@ -13,7 +13,7 @@ import { triggerWorkflow } from "./workflowClient.js";
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 const port = Number(process.env.PORT || 4000);
 const adminToken = process.env.ADMIN_TOKEN || "";
@@ -28,7 +28,16 @@ const requireAdmin = (req: express.Request, res: express.Response, next: express
   return next();
 };
 
-app.post("/requests", async (req, res) => {
+const asyncHandler =
+  (handler: express.RequestHandler) =>
+  (req: express.Request, res: express.Response, next: express.NextFunction) =>
+    Promise.resolve(handler(req, res, next)).catch(next);
+
+app.get("/health", (_req, res) => res.json({ ok: true }));
+
+app.post(
+  "/requests",
+  asyncHandler(async (req, res) => {
   const { userEmail, wallet } = req.body || {};
   if (!userEmail || !wallet) {
     return res.status(400).json({ error: "Missing userEmail or wallet" });
@@ -43,8 +52,9 @@ app.post("/requests", async (req, res) => {
   const request = db.createRequest({ userEmail: String(userEmail), wallet: String(wallet) });
   await sendAdminNewRequest(request);
 
-  return res.json({ id: request.id, status: request.status });
-});
+    return res.json({ id: request.id, status: request.status });
+  })
+);
 
 app.get("/requests/:id", (req, res) => {
   const request = db.getRequest(req.params.id);
@@ -67,50 +77,66 @@ app.get("/admin/requests", requireAdmin, (req, res) => {
   return res.json({ requests });
 });
 
-app.post("/admin/requests/:id/approve", requireAdmin, async (req, res) => {
-  const request = db.getRequest(req.params.id);
-  if (!request) {
-    return res.status(404).json({ error: "Not found" });
-  }
-
-  const approved = db.updateRequest(request.id, { status: "APPROVED" });
-  if (approved) {
-    await sendUserApproved(approved);
-  }
-
-  db.updateRequest(request.id, { status: "SCORING" });
-
-  try {
-    const result = await triggerWorkflow(request.wallet);
-    const updated = db.updateRequest(request.id, {
-      status: "SCORED",
-      txHash: result.txHash,
-    });
-    if (updated) {
-      await sendUserScored(updated);
+app.post(
+  "/admin/requests/:id/approve",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const request = db.getRequest(req.params.id);
+    if (!request) {
+      return res.status(404).json({ error: "Not found" });
     }
-    return res.json({ status: "SCORED", txHash: result.txHash });
-  } catch (error) {
-    db.updateRequest(request.id, { status: "FAILED" });
-    return res.status(500).json({ error: error instanceof Error ? error.message : "Workflow failed" });
-  }
-});
 
-app.post("/admin/requests/:id/reject", requireAdmin, async (req, res) => {
-  const request = db.getRequest(req.params.id);
-  if (!request) {
-    return res.status(404).json({ error: "Not found" });
-  }
+    const approved = db.updateRequest(request.id, { status: "APPROVED" });
+    if (approved) {
+      await sendUserApproved(approved);
+    }
 
-  const updated = db.updateRequest(request.id, { status: "REJECTED" });
-  if (updated) {
-    await sendUserRejected(updated);
-  }
+    db.updateRequest(request.id, { status: "SCORING" });
 
-  return res.json({ status: "REJECTED" });
-});
+    try {
+      const result = await triggerWorkflow(request.wallet);
+      const updated = db.updateRequest(request.id, {
+        status: "SCORED",
+        txHash: result.txHash,
+      });
+      if (updated) {
+        await sendUserScored(updated);
+      }
+      return res.json({ status: "SCORED", txHash: result.txHash });
+    } catch (error) {
+      console.error("Workflow trigger failed:", error);
+      db.updateRequest(request.id, { status: "FAILED" });
+      return res
+        .status(500)
+        .json({ error: error instanceof Error ? error.message : "Workflow failed" });
+    }
+  })
+);
+
+app.post(
+  "/admin/requests/:id/reject",
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const request = db.getRequest(req.params.id);
+    if (!request) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    const updated = db.updateRequest(request.id, { status: "REJECTED" });
+    if (updated) {
+      await sendUserRejected(updated);
+    }
+
+    return res.json({ status: "REJECTED" });
+  })
+);
 
 app.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`App API listening on port ${port}`);
+});
+
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "INTERNAL_SERVER_ERROR" });
 });

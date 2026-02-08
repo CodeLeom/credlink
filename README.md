@@ -15,6 +15,10 @@ HTTP Trigger -> Fetch Scoring API -> Compute Hashes -> Consensus -> Chainwrite s
 **Where Chainlink/CRE is used**
 - The CRE workflow fetches the scoring API, performs hash computation, reaches consensus, and performs the chainwrite to `CreditBureau.setScore(...)`.
 
+**Configuration Note**
+- Configure environment variables AFTER code is complete.
+- The workflow trigger is abstracted by the app-api and can be wired to Sepolia later.
+
 **End-to-End Demo**
 ```bash
 # 1) Contracts

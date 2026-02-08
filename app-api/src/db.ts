@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 import type { RequestRecord, RequestStatus } from "./requests.js";
+import { assertStatusTransition } from "./requests.js";
 
 export type RequestStore = {
   createRequest: (input: { userEmail: string; wallet: string }) => RequestRecord;
@@ -64,6 +65,9 @@ const buildSqliteStore = (dbUrl: string): RequestStore => {
         userEmail,
         wallet,
         status: "PENDING",
+        score: null,
+        txHash: null,
+        adminNote: null,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -83,6 +87,9 @@ const buildSqliteStore = (dbUrl: string): RequestStore => {
     updateRequest: (id, patch) => {
       const existing = selectStmt.get(id) as RequestRecord | undefined;
       if (!existing) return undefined;
+      if (patch.status && patch.status !== existing.status) {
+        assertStatusTransition(existing.status, patch.status);
+      }
       const updated: RequestRecord = {
         ...existing,
         ...patch,
@@ -105,6 +112,9 @@ const buildMemoryStore = (): RequestStore => {
         userEmail,
         wallet,
         status: "PENDING",
+        score: null,
+        txHash: null,
+        adminNote: null,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -119,6 +129,9 @@ const buildMemoryStore = (): RequestStore => {
     updateRequest: (id, patch) => {
       const existing = store.get(id);
       if (!existing) return undefined;
+      if (patch.status && patch.status !== existing.status) {
+        assertStatusTransition(existing.status, patch.status);
+      }
       const updated: RequestRecord = {
         ...existing,
         ...patch,

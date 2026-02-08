@@ -1,7 +1,7 @@
 export const triggerWorkflow = async (user: string): Promise<{ txHash: string }> => {
   const url = process.env.WORKFLOW_HTTP_URL;
   if (!url) {
-    throw new Error("WORKFLOW_HTTP_URL is not set");
+    throw new Error("WORKFLOW_HTTP_URL not configured");
   }
 
   const controller = new AbortController();

@@ -12,12 +12,16 @@ const safeSend = async (params: { to: string; subject: string; text: string }) =
     console.warn("RESEND_API_KEY not set. Skipping email.");
     return;
   }
-  await resend.emails.send({
-    from: emailFrom,
-    to: params.to,
-    subject: params.subject,
-    text: params.text,
-  });
+  try {
+    await resend.emails.send({
+      from: emailFrom,
+      to: params.to,
+      subject: params.subject,
+      text: params.text,
+    });
+  } catch (error) {
+    console.error("Email send failed:", error);
+  }
 };
 
 export const sendAdminNewRequest = async (request: RequestRecord) => {

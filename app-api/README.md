@@ -13,6 +13,10 @@ cp .env.example .env
 npm run dev
 ```
 
+**Configuration Note**
+- Configure environment variables AFTER code is complete.
+- Workflow trigger is abstracted behind `WORKFLOW_HTTP_URL` and can be configured later.
+
 **Endpoints**
 - `POST /requests`
 - `GET /requests/:id`
