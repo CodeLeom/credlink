@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { injected } from "@wagmi/connectors";
 import { Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
 import { createRequest } from "../lib/api";
 
