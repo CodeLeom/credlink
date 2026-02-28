@@ -15,7 +15,14 @@ import {
   TableBody,
   Paper,
   Button,
+  Chip,
+  Collapse,
+  Box,
+  IconButton,
 } from "@mui/material";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { listAdminRequests } from "../lib/api";
 import ApproveReject from "./ApproveReject";
 import { useNotification } from "./NotificationProvider";
@@ -25,9 +32,185 @@ export type RequestRow = {
   userEmail: string;
   wallet: string;
   status: string;
+  score?: number | null;
+  txHash?: string | null;
   createdAt: number;
   updatedAt: number;
 };
+
+function ExpandableRow({
+  req,
+  token,
+  onAction,
+}: {
+  req: RequestRow;
+  token: string;
+  onAction: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const { notify } = useNotification();
+
+  return (
+    <>
+      <TableRow hover>
+        <TableCell width="40px">
+          <IconButton size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell
+          sx={{
+            maxWidth: "100px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <code style={{ fontSize: "0.75rem" }}>{req.id.slice(0, 8)}...</code>
+        </TableCell>
+        <TableCell
+          sx={{
+            maxWidth: "150px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {req.userEmail}
+        </TableCell>
+        <TableCell>
+          <Chip
+            label={req.status}
+            size="small"
+            color={
+              req.status === "PENDING"
+                ? "warning"
+                : req.status === "SCORED"
+                  ? "success"
+                  : req.status === "FAILED"
+                    ? "error"
+                    : "default"
+            }
+          />
+        </TableCell>
+        <TableCell align="right">
+          {req.score !== null && req.score !== undefined ? (
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {req.score}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              —
+            </Typography>
+          )}
+        </TableCell>
+        <TableCell align="right">
+          <ApproveReject id={req.id} token={token} onAction={onAction} />
+        </TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={6} sx={{ py: 0 }}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
+              <Stack spacing={1.5}>
+                <Typography variant="subtitle2">Full Details</Typography>
+                <Stack direction="row" spacing={2}>
+                  <Box flex={1}>
+                    <Typography variant="caption" color="text.secondary">
+                      Request ID
+                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                        {req.id}
+                      </code>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(req.id);
+                          notify({ message: "Copied request ID" });
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                  <Box flex={1}>
+                    <Typography variant="caption" color="text.secondary">
+                      Wallet
+                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                        {req.wallet}
+                      </code>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(req.wallet);
+                          notify({ message: "Copied wallet" });
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                </Stack>
+                {req.txHash && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      On-Chain Transaction
+                    </Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                        {req.txHash}
+                      </code>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(req.txHash || "");
+                          notify({ message: "Copied txHash" });
+                        }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                )}
+                {req.score !== null && req.score !== undefined && (
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Credit Score
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {req.score}
+                    </Typography>
+                  </Box>
+                )}
+                <Stack direction="row" spacing={2}>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Created
+                    </Typography>
+                    <Typography variant="body2">
+                      {new Date(req.createdAt * 1000).toLocaleString()}
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Updated
+                    </Typography>
+                    <Typography variant="body2">
+                      {new Date(req.updatedAt * 1000).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Stack>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
+}
 
 export default function AdminTable() {
   const [requests, setRequests] = useState<RequestRow[]>([]);
@@ -83,38 +266,24 @@ export default function AdminTable() {
           {requests.length === 0 ? (
             <Typography variant="body2">No pending requests.</Typography>
           ) : (
-            <TableContainer component={Paper} sx={{ mt: 2 }}>
-              <Table size="small">
+            <TableContainer
+              component={Paper}
+              sx={{ mt: 2, maxWidth: "100%", overflowX: "visible" }}
+            >
+              <Table size="small" sx={{ minWidth: 600 }}>
                 <TableHead>
-                  <TableRow>
+                  <TableRow sx={{ bgcolor: "#fafafa" }}>
+                    <TableCell width="40px" />
                     <TableCell>ID</TableCell>
                     <TableCell>Email</TableCell>
-                    <TableCell>Wallet</TableCell>
-                    <TableCell>Created</TableCell>
-                    <TableCell>Updated</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Score</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {requests.map((req) => (
-                    <TableRow key={req.id} hover>
-                      <TableCell>{req.id}</TableCell>
-                      <TableCell>{req.userEmail}</TableCell>
-                      <TableCell>{req.wallet}</TableCell>
-                      <TableCell>
-                        {new Date(req.createdAt * 1000).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(req.updatedAt * 1000).toLocaleString()}
-                      </TableCell>
-                      <TableCell align="right">
-                        <ApproveReject
-                          id={req.id}
-                          token={token}
-                          onAction={load}
-                        />
-                      </TableCell>
-                    </TableRow>
+                    <ExpandableRow key={req.id} req={req} token={token} onAction={load} />
                   ))}
                 </TableBody>
               </Table>

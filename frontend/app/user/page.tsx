@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Box, Container, Grid, Stack, Typography, Alert } from "@mui/material";
 import RequestForm from "../../components/RequestForm";
 import RequestStatus from "../../components/RequestStatus";
+import RequestLookup from "../../components/RequestLookup";
 import ScoreCard from "../../components/ScoreCard";
 import QuotePanel from "../../components/QuotePanel";
 
@@ -29,19 +30,29 @@ export default function UserPage() {
             <Typography variant="h3">CredLink User</Typography>
             <Alert severity="info">
               Connect your wallet (Sepolia) and submit a request to see your
-              score and loan quote.
+              score and loan quote. You can also look up your request status
+              using your request ID.
             </Alert>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <RequestForm onCreated={(id) => setRequestId(id)} />
               </Grid>
               <Grid item xs={12} md={6}>
+                <RequestLookup />
+              </Grid>
+            </Grid>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={12}>
                 {requestId ? (
                   <RequestStatus
                     requestId={requestId}
                     onScored={(walletAddress) => setWallet(walletAddress)}
                   />
-                ) : null}
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Submit a request above to see real-time status updates.
+                  </Typography>
+                )}
               </Grid>
             </Grid>
             <Grid container spacing={3}>
