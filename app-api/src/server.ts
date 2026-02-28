@@ -1,3 +1,4 @@
+import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import { initDb } from "./db.js";
@@ -13,13 +14,18 @@ import { triggerWorkflow } from "./workflowClient.js";
 dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 const port = Number(process.env.PORT || 4000);
 const adminToken = process.env.ADMIN_TOKEN || "";
 const db = initDb(process.env.DATABASE_URL);
 
-const requireAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const requireAdmin = (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) => {
   const authHeader = String(req.headers.authorization || "");
   const token = authHeader.replace("Bearer ", "");
   if (!token || token !== adminToken) {
@@ -38,22 +44,25 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 app.post(
   "/requests",
   asyncHandler(async (req, res) => {
-  const { userEmail, wallet } = req.body || {};
-  if (!userEmail || !wallet) {
-    return res.status(400).json({ error: "Missing userEmail or wallet" });
-  }
-  if (!isValidEmail(String(userEmail))) {
-    return res.status(400).json({ error: "Invalid email" });
-  }
-  if (!isValidWallet(String(wallet))) {
-    return res.status(400).json({ error: "Invalid wallet" });
-  }
+    const { userEmail, wallet } = req.body || {};
+    if (!userEmail || !wallet) {
+      return res.status(400).json({ error: "Missing userEmail or wallet" });
+    }
+    if (!isValidEmail(String(userEmail))) {
+      return res.status(400).json({ error: "Invalid email" });
+    }
+    if (!isValidWallet(String(wallet))) {
+      return res.status(400).json({ error: "Invalid wallet" });
+    }
 
-  const request = db.createRequest({ userEmail: String(userEmail), wallet: String(wallet) });
-  await sendAdminNewRequest(request);
+    const request = db.createRequest({
+      userEmail: String(userEmail),
+      wallet: String(wallet),
+    });
+    await sendAdminNewRequest(request);
 
     return res.json({ id: request.id, status: request.status });
-  })
+  }),
 );
 
 app.get("/requests/:id", (req, res) => {
@@ -108,9 +117,11 @@ app.post(
       db.updateRequest(request.id, { status: "FAILED" });
       return res
         .status(500)
-        .json({ error: error instanceof Error ? error.message : "Workflow failed" });
+        .json({
+          error: error instanceof Error ? error.message : "Workflow failed",
+        });
     }
-  })
+  }),
 );
 
 app.post(
@@ -128,7 +139,7 @@ app.post(
     }
 
     return res.json({ status: "REJECTED" });
-  })
+  }),
 );
 
 app.listen(port, () => {
