@@ -4,15 +4,23 @@ import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
-  Divider,
   Stack,
   TextField,
   Typography,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Paper,
+  Button,
 } from "@mui/material";
 import { listAdminRequests } from "../lib/api";
 import ApproveReject from "./ApproveReject";
+import { useNotification } from "./NotificationProvider";
 
-type RequestRow = {
+export type RequestRow = {
   id: string;
   userEmail: string;
   wallet: string;
@@ -25,15 +33,18 @@ export default function AdminTable() {
   const [requests, setRequests] = useState<RequestRow[]>([]);
   const [error, setError] = useState("");
   const [token, setToken] = useState(
-    process.env.NEXT_PUBLIC_ADMIN_TOKEN || process.env.ADMIN_TOKEN || ""
+    process.env.NEXT_PUBLIC_ADMIN_TOKEN || process.env.ADMIN_TOKEN || "",
   );
+  const { notify } = useNotification();
 
   const load = async () => {
     try {
       const result = await listAdminRequests("PENDING", token);
       setRequests(result.requests || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load");
+      const msg = err instanceof Error ? err.message : "Failed to load";
+      setError(msg);
+      notify({ message: msg, severity: "error" });
     }
   };
 
@@ -47,7 +58,16 @@ export default function AdminTable() {
     <Card elevation={0} sx={{ border: "1px solid #e2e2dd" }}>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5">Pending Requests</Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="h5">Pending Requests</Typography>
+            <Button size="small" onClick={load} variant="outlined">
+              Refresh
+            </Button>
+          </Stack>
           <TextField
             type="password"
             label="Admin token"
@@ -62,16 +82,44 @@ export default function AdminTable() {
           ) : null}
           {requests.length === 0 ? (
             <Typography variant="body2">No pending requests.</Typography>
-          ) : null}
-          {requests.map((req, index) => (
-            <Stack key={req.id} spacing={1}>
-              {index > 0 ? <Divider /> : null}
-              <Typography variant="subtitle2">ID: {req.id}</Typography>
-              <Typography variant="body2">Email: {req.userEmail}</Typography>
-              <Typography variant="body2">Wallet: {req.wallet}</Typography>
-              <ApproveReject id={req.id} token={token} onAction={load} />
-            </Stack>
-          ))}
+          ) : (
+            <TableContainer component={Paper} sx={{ mt: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Wallet</TableCell>
+                    <TableCell>Created</TableCell>
+                    <TableCell>Updated</TableCell>
+                    <TableCell align="right">Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {requests.map((req) => (
+                    <TableRow key={req.id} hover>
+                      <TableCell>{req.id}</TableCell>
+                      <TableCell>{req.userEmail}</TableCell>
+                      <TableCell>{req.wallet}</TableCell>
+                      <TableCell>
+                        {new Date(req.createdAt * 1000).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(req.updatedAt * 1000).toLocaleString()}
+                      </TableCell>
+                      <TableCell align="right">
+                        <ApproveReject
+                          id={req.id}
+                          token={token}
+                          onAction={load}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Stack>
       </CardContent>
     </Card>

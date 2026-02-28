@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, Stack, TextField, Typography, Chip } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Stack,
+  TextField,
+  Typography,
+  Chip,
+} from "@mui/material";
 import { useReadContract } from "wagmi";
 import { loanManagerAbi, loanManagerAddress } from "../lib/contracts";
 
@@ -14,15 +21,29 @@ export default function QuotePanel({ wallet }: Props) {
   const [collateralUsd, setCollateralUsd] = useState(2000);
 
   const enabled = Boolean(wallet && loanManagerAddress);
-  const { data } = useReadContract({
+  const { data, isFetching } = useReadContract({
     abi: loanManagerAbi,
     address: loanManagerAddress,
     functionName: "quoteLoan",
-    args: wallet ? [wallet as `0x${string}`, BigInt(amountUsd), BigInt(collateralUsd)] : undefined,
+    args: wallet
+      ? [wallet as `0x${string}`, BigInt(amountUsd), BigInt(collateralUsd)]
+      : undefined,
     query: { enabled },
   });
 
   const parsed = data as unknown as [boolean, bigint, string] | undefined;
+
+  if (!loanManagerAddress) {
+    return (
+      <Card elevation={0} sx={{ border: "1px solid #e0e0da" }}>
+        <CardContent>
+          <Typography variant="body2" color="warning.main">
+            Loan manager contract address not configured.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card elevation={0} sx={{ border: "1px solid #e0e0da" }}>
@@ -58,10 +79,16 @@ export default function QuotePanel({ wallet }: Props) {
                   size="small"
                 />
               </Stack>
-              <Typography variant="body2">APR (bps): {parsed[1].toString()}</Typography>
+              <Typography variant="body2">
+                APR (bps): {parsed[1].toString()}
+              </Typography>
             </Stack>
-          ) : (
+          ) : isFetching ? (
             <Typography variant="body2">Waiting for data...</Typography>
+          ) : (
+            <Typography variant="body2">
+              Enter values above to quote.
+            </Typography>
           )}
         </Stack>
       </CardContent>

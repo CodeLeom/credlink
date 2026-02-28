@@ -19,7 +19,7 @@ const tierLabel = (tier: number) => {
 
 export default function ScoreCard({ wallet }: Props) {
   const enabled = Boolean(wallet && creditBureauAddress);
-  const { data } = useReadContract({
+  const { data, isFetching } = useReadContract({
     abi: creditBureauAbi,
     address: creditBureauAddress,
     functionName: "getScore",
@@ -29,7 +29,11 @@ export default function ScoreCard({ wallet }: Props) {
 
   const parsed = useMemo(() => {
     if (!data) return undefined;
-    const [score, tier, updatedAt] = data as unknown as [number, number, number];
+    const [score, tier, updatedAt] = data as unknown as [
+      number,
+      number,
+      number,
+    ];
     const timestamp = Number(updatedAt) * 1000;
     return {
       score: Number(score),
@@ -42,7 +46,21 @@ export default function ScoreCard({ wallet }: Props) {
     return (
       <Card elevation={0} sx={{ border: "1px solid #ecece6" }}>
         <CardContent>
-          <Typography variant="body2">Connect a wallet to view on-chain score.</Typography>
+          <Typography variant="body2">
+            Connect a wallet to view on-chain score.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!creditBureauAddress) {
+    return (
+      <Card elevation={0} sx={{ border: "1px solid #ecece6" }}>
+        <CardContent>
+          <Typography variant="body2" color="warning.main">
+            Credit bureau contract address not configured.
+          </Typography>
         </CardContent>
       </Card>
     );
@@ -57,12 +75,20 @@ export default function ScoreCard({ wallet }: Props) {
             <>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Typography variant="h3">{parsed.score}</Typography>
-                <Chip label={tierLabel(parsed.tier)} color="primary" variant="outlined" />
+                <Chip
+                  label={tierLabel(parsed.tier)}
+                  color="primary"
+                  variant="outlined"
+                />
               </Stack>
-              <Typography variant="body2">Last updated: {parsed.updatedAt}</Typography>
+              <Typography variant="body2">
+                Last updated: {parsed.updatedAt}
+              </Typography>
             </>
-          ) : (
+          ) : isFetching ? (
             <Typography variant="body2">Loading on-chain score...</Typography>
+          ) : (
+            <Typography variant="body2">No score available.</Typography>
           )}
         </Stack>
       </CardContent>

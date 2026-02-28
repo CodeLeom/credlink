@@ -3,8 +3,18 @@
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "@wagmi/connectors";
-import { Button, Card, CardContent, Stack, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  CardContent,
+  Stack,
+  TextField,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { createRequest } from "../lib/api";
+import { useNotification } from "./NotificationProvider";
 
 type Props = {
   onCreated: (id: string) => void;
@@ -17,6 +27,8 @@ export default function RequestForm({ onCreated }: Props) {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const { notify } = useNotification();
 
   const handleSubmit = async () => {
     setError("");
@@ -32,8 +44,15 @@ export default function RequestForm({ onCreated }: Props) {
     try {
       const result = await createRequest({ userEmail: email, wallet: address });
       onCreated(result.id);
+      setCreatedId(result.id);
+      notify({
+        message: `Request created (${result.id})`,
+        severity: "success",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit.");
+      const msg = err instanceof Error ? err.message : "Failed to submit.";
+      setError(msg);
+      notify({ message: msg, severity: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -44,7 +63,11 @@ export default function RequestForm({ onCreated }: Props) {
       <CardContent>
         <Stack spacing={2}>
           <Typography variant="h5">Request Credit Score</Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems="center"
+          >
             {isConnected ? (
               <>
                 <Typography variant="body2" sx={{ flex: 1 }}>
@@ -71,13 +94,31 @@ export default function RequestForm({ onCreated }: Props) {
             onChange={(event) => setEmail(event.target.value)}
             fullWidth
           />
-          <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
             {submitting ? "Submitting..." : "Request Score"}
           </Button>
           {error ? (
             <Typography variant="body2" color="error">
               {error}
             </Typography>
+          ) : null}
+          {createdId ? (
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Typography variant="body2">ID: {createdId}</Typography>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  navigator.clipboard.writeText(createdId);
+                  notify({ message: "Copied ID to clipboard" });
+                }}
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+            </Stack>
           ) : null}
         </Stack>
       </CardContent>

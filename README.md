@@ -15,48 +15,6 @@ HTTP Trigger -> Fetch Scoring API -> Compute Hashes -> Consensus -> Chainwrite s
 **Where Chainlink/CRE is used**
 - The CRE workflow fetches the scoring API, performs hash computation, reaches consensus, and performs the chainwrite to `CreditBureau.setScore(...)`.
 
-**Configuration Note**
-- Configure environment variables AFTER code is complete.
-- The workflow trigger is abstracted by the app-api and can be wired to Sepolia later.
-
-**End-to-End Demo**
-```bash
-# 1) Contracts
-cd contracts
-forge test
-cp .env.example .env
-source .env
-forge script script/Deploy.s.sol:Deploy --rpc-url $SEPOLIA_RPC_URL --broadcast --private-key $PRIVATE_KEY
-
-# 2) Set updater
-export CREDIT_BUREAU_ADDRESS=0x...
-export UPDATER_ADDRESS=0x...
-forge script script/SetUpdater.s.sol:SetUpdater --rpc-url $SEPOLIA_RPC_URL --broadcast --private-key $PRIVATE_KEY
-
-# 3) Scoring API
-cd ../scoring-api
-npm i
-cp .env.example .env
-npm run dev
-
-# 4) Workflow
-cd ../workflow
-npm i
-cp .env.example .env
-npm run simulate -- --user 0xYourWallet
-npm run broadcast -- --user 0xYourWallet
-
-# 5) Verify on-chain
-cast call $CREDIT_BUREAU_ADDRESS \
-  "getScore(address)(uint16,uint8,uint40,bytes32,bytes32)" 0xYourWallet \
-  --rpc-url $SEPOLIA_RPC_URL
-
-# 6) Loan quote
-cast call $LOAN_MANAGER_ADDRESS \
-  "quoteLoan(address,uint256,uint256)(bool,uint256,string)" 0xYourWallet 1000 2000 \
-  --rpc-url $SEPOLIA_RPC_URL
-```
-
 **Product Flow (User → Admin → Chainlink CRE)**
 ```
 User UI
