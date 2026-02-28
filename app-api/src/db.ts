@@ -1,13 +1,26 @@
-import Database from "better-sqlite3";
+// better-sqlite3 has no official types so provide a simple declaration
+// "better-sqlite3" is a native addon that may fail to build on some Node
+// versions (e.g. Node 23).  We only load it lazily when a DATABASE_URL is
+// provided so that the app can run with an in-memory store during development
+// or on machines where the native binary isn't compatible.
+let Database: any;
 import { randomUUID } from "node:crypto";
+import { createRequire } from "module";
+const requireC = createRequire(import.meta.url);
 import type { RequestRecord, RequestStatus } from "./requests.js";
 import { assertStatusTransition } from "./requests.js";
 
 export type RequestStore = {
-  createRequest: (input: { userEmail: string; wallet: string }) => RequestRecord;
+  createRequest: (input: {
+    userEmail: string;
+    wallet: string;
+  }) => RequestRecord;
   getRequest: (id: string) => RequestRecord | undefined;
   listRequests: (status?: RequestStatus) => RequestRecord[];
-  updateRequest: (id: string, patch: Partial<RequestRecord>) => RequestRecord | undefined;
+  updateRequest: (
+    id: string,
+    patch: Partial<RequestRecord>,
+  ) => RequestRecord | undefined;
 };
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -19,9 +32,10 @@ const normalizeSqlitePath = (url: string): string => {
   return url;
 };
 
-const buildSqliteStore = (dbUrl: string): RequestStore => {
+// build a sqlite-backed store given a Database constructor (from better-sqlite3)
+const buildSqliteStore = (dbUrl: string, Sqlite: any): RequestStore => {
   const dbPath = normalizeSqlitePath(dbUrl);
-  const db = new Database(dbPath);
+  const db = new Sqlite(dbPath);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS requests (
@@ -44,7 +58,9 @@ const buildSqliteStore = (dbUrl: string): RequestStore => {
 
   const selectStmt = db.prepare("SELECT * FROM requests WHERE id = ?");
   const selectAllStmt = db.prepare("SELECT * FROM requests");
-  const selectByStatusStmt = db.prepare("SELECT * FROM requests WHERE status = ?");
+  const selectByStatusStmt = db.prepare(
+    "SELECT * FROM requests WHERE status = ?",
+  );
   const updateStmt = db.prepare(`
     UPDATE requests
     SET userEmail = @userEmail,
@@ -147,11 +163,23 @@ export const initDb = (dbUrl?: string): RequestStore => {
   if (!dbUrl) {
     return buildMemoryStore();
   }
+  // attempt to load the native sqlite module safely
+  let Sqlite: any;
   try {
-    return buildSqliteStore(dbUrl);
+    // use createRequire to avoid ReferenceError, but catch loading errors
+    Sqlite = requireC("better-sqlite3");
+  } catch (err) {
+    console.warn("SQLite module not available, using memory store", err);
+    return buildMemoryStore();
+  }
+
+  try {
+    return buildSqliteStore(dbUrl, Sqlite);
   } catch (error) {
-    // Fallback to memory if SQLite fails to initialize
-    console.warn("SQLite unavailable, falling back to in-memory store", error);
+    console.warn(
+      "SQLite initialization failed, falling back to memory store",
+      error,
+    );
     return buildMemoryStore();
   }
 };

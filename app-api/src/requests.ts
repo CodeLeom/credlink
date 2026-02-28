@@ -11,9 +11,10 @@ export type RequestRecord = {
   userEmail: string;
   wallet: string;
   status: RequestStatus;
-  score?: number;
-  txHash?: string;
-  adminNote?: string;
+  // sqlite columns default to NULL until set
+  score?: number | null;
+  txHash?: string | null;
+  adminNote?: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -37,7 +38,7 @@ const allowedTransitions: Record<RequestStatus, RequestStatus[]> = {
 
 export const assertStatusTransition = (
   current: RequestStatus,
-  next: RequestStatus
+  next: RequestStatus,
 ): void => {
   if (current === next) {
     return;
