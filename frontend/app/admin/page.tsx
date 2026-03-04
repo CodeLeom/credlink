@@ -1,14 +1,11 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Box, Container, Stack, Typography, Alert } from "@mui/material";
 import AdminTable from "../../components/AdminTable";
 
-const queryClient = new QueryClient();
-
 export default function AdminPage() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Box
         sx={{
           minHeight: "100vh",
@@ -21,13 +18,13 @@ export default function AdminPage() {
           <Stack spacing={3}>
             <Typography variant="h3">CredLink Admin</Typography>
             <Alert severity="info">
-              Enter the admin token (or set NEXT_PUBLIC_ADMIN_TOKEN) to view and
+              Enter the admin token to view and
               manage requests.
             </Alert>
             <AdminTable />
           </Stack>
         </Container>
       </Box>
-    </QueryClientProvider>
+    </>
   );
 }

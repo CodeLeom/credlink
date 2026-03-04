@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Box, Container, Grid, Stack, Typography, Alert } from "@mui/material";
 import RequestForm from "../../components/RequestForm";
 import RequestStatus from "../../components/RequestStatus";
@@ -9,14 +8,12 @@ import RequestLookup from "../../components/RequestLookup";
 import ScoreCard from "../../components/ScoreCard";
 import QuotePanel from "../../components/QuotePanel";
 
-const queryClient = new QueryClient();
-
 export default function UserPage() {
   const [requestId, setRequestId] = useState<string | null>(null);
   const [wallet, setWallet] = useState<string | undefined>(undefined);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Box
         sx={{
           minHeight: "100vh",
@@ -66,6 +63,6 @@ export default function UserPage() {
           </Stack>
         </Container>
       </Box>
-    </QueryClientProvider>
+    </>
   );
 }
