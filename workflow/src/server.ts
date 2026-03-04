@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import express from "express";
+import express, { Request, Response } from "express";
 import { runWorkflow } from "./workflow.js";
 import { loadConfig } from "./config.js";
 
@@ -19,11 +19,11 @@ try {
   process.exit(1);
 }
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: Request, res: Response) => {
   res.json({ ok: true, mode });
 });
 
-app.post("/", async (req, res) => {
+app.post("/", async (req: Request, res: Response) => {
   const { user } = req.body || {};
 
   if (!user || typeof user !== "string") {
