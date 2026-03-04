@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 import { useReadContract } from "wagmi";
 import { creditBureauAbi, creditBureauAddress } from "../lib/contracts";
+import ErrorAlert from "./ErrorAlert";
 
 type Props = {
   wallet?: string;
@@ -58,9 +59,12 @@ export default function ScoreCard({ wallet }: Props) {
     return (
       <Card elevation={0} sx={{ border: "1px solid #ecece6" }}>
         <CardContent>
-          <Typography variant="body2" color="warning.main">
-            Credit bureau contract address not configured.
-          </Typography>
+          <ErrorAlert
+            message="Credit Bureau contract address not configured."
+            severity="warning"
+            title="Configuration Required"
+            compact
+          />
         </CardContent>
       </Card>
     );

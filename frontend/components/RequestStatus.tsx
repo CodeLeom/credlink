@@ -12,6 +12,7 @@ import {
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { getRequestStatus } from "../lib/api";
 import { useNotification } from "./NotificationProvider";
+import ErrorAlert from "./ErrorAlert";
 
 type Props = {
   requestId: string;
@@ -22,29 +23,38 @@ export default function RequestStatus({ requestId, onScored }: Props) {
   const [status, setStatus] = useState<string>("PENDING");
   const [txHash, setTxHash] = useState<string | undefined>(undefined);
   const [wallet, setWallet] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined);
   const { notify } = useNotification();
+
+  const poll = async () => {
+    try {
+      const data = await getRequestStatus(requestId);
+      setStatus(data.status);
+      setTxHash(data.txHash);
+      setWallet(data.wallet);
+      setError(undefined);
+      if (data.status === "SCORED" && data.wallet) {
+        onScored(data.wallet, data.txHash);
+        notify({ message: "Score available!", severity: "success" });
+      }
+      if (data.status === "FAILED") {
+        setError("Request processing failed. Please try again or contact support.");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to fetch status";
+      setError(msg);
+      setStatus("FAILED");
+    }
+  };
 
   useEffect(() => {
     let active = true;
-    const poll = async () => {
-      try {
-        const data = await getRequestStatus(requestId);
-        if (!active) return;
-        setStatus(data.status);
-        setTxHash(data.txHash);
-        setWallet(data.wallet);
-        if (data.status === "SCORED" && data.wallet) {
-          onScored(data.wallet, data.txHash);
-          notify({ message: "Score available!", severity: "success" });
-        }
-      } catch (error) {
-        if (!active) return;
-        setStatus("FAILED");
-      }
+    const doPoll = async () => {
+      if (!active) return;
+      await poll();
     };
-
-    poll();
-    const interval = setInterval(poll, 5000);
+    doPoll();
+    const interval = setInterval(doPoll, 5000);
     return () => {
       active = false;
       clearInterval(interval);
@@ -84,12 +94,21 @@ export default function RequestStatus({ requestId, onScored }: Props) {
               size="small"
             />
           </Stack>
-          {txHash ? (
+          {error && (
+            <ErrorAlert
+              message={error}
+              severity="error"
+              compact
+              onRetry={poll}
+              retryLabel="Retry"
+            />
+          )}
+          {txHash && (
             <Typography variant="body2">Tx: {txHash}</Typography>
-          ) : null}
-          {wallet ? (
+          )}
+          {wallet && (
             <Typography variant="body2">Wallet: {wallet}</Typography>
-          ) : null}
+          )}
         </Stack>
       </CardContent>
     </Card>

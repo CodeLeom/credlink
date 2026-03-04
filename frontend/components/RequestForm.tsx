@@ -15,6 +15,7 @@ import {
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { createRequest } from "../lib/api";
 import { useNotification } from "./NotificationProvider";
+import ErrorAlert from "./ErrorAlert";
 
 type Props = {
   onCreated: (id: string) => void;
@@ -101,11 +102,15 @@ export default function RequestForm({ onCreated }: Props) {
           >
             {submitting ? "Submitting..." : "Request Score"}
           </Button>
-          {error ? (
-            <Typography variant="body2" color="error">
-              {error}
-            </Typography>
-          ) : null}
+          {error && (
+            <ErrorAlert
+              message={error}
+              severity="error"
+              compact
+              dismissible
+              onDismiss={() => setError("")}
+            />
+          )}
           {createdId ? (
             <Stack direction="row" alignItems="center" spacing={1}>
               <Typography variant="body2">ID: {createdId}</Typography>

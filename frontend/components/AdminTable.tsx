@@ -26,6 +26,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { listAdminRequests } from "../lib/api";
 import ApproveReject from "./ApproveReject";
 import { useNotification } from "./NotificationProvider";
+import ErrorAlert from "./ErrorAlert";
 
 export type RequestRow = {
   id: string;
@@ -120,7 +121,9 @@ function ExpandableRow({
                       Request ID
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                      <code
+                        style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                      >
                         {req.id}
                       </code>
                       <IconButton
@@ -139,7 +142,9 @@ function ExpandableRow({
                       Wallet
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                      <code
+                        style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                      >
                         {req.wallet}
                       </code>
                       <IconButton
@@ -160,7 +165,9 @@ function ExpandableRow({
                       On-Chain Transaction
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                      <code
+                        style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                      >
                         {req.txHash}
                       </code>
                       <IconButton
@@ -222,7 +229,7 @@ export default function AdminTable() {
 
   const load = async () => {
     try {
-      const result = await listAdminRequests("PENDING", token);
+      const result = await listAdminRequests(undefined, token);
       setRequests(result.requests || []);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to load";
@@ -246,7 +253,7 @@ export default function AdminTable() {
             justifyContent="space-between"
             alignItems="center"
           >
-            <Typography variant="h5">Pending Requests</Typography>
+            <Typography variant="h5">All Requests</Typography>
             <Button size="small" onClick={load} variant="outlined">
               Refresh
             </Button>
@@ -258,13 +265,17 @@ export default function AdminTable() {
             onChange={(event) => setToken(event.target.value)}
             fullWidth
           />
-          {error ? (
-            <Typography variant="body2" color="error">
-              {error}
-            </Typography>
-          ) : null}
+          {error && (
+            <ErrorAlert
+              message={error}
+              severity="error"
+              onRetry={load}
+              dismissible
+              onDismiss={() => setError("")}
+            />
+          )}
           {requests.length === 0 ? (
-            <Typography variant="body2">No pending requests.</Typography>
+            <Typography variant="body2">No requests found.</Typography>
           ) : (
             <TableContainer
               component={Paper}
@@ -283,7 +294,12 @@ export default function AdminTable() {
                 </TableHead>
                 <TableBody>
                   {requests.map((req) => (
-                    <ExpandableRow key={req.id} req={req} token={token} onAction={load} />
+                    <ExpandableRow
+                      key={req.id}
+                      req={req}
+                      token={token}
+                      onAction={load}
+                    />
                   ))}
                 </TableBody>
               </Table>

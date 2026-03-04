@@ -12,11 +12,11 @@ import {
   Box,
   IconButton,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { getRequestStatus } from "../lib/api";
 import { useNotification } from "./NotificationProvider";
+import ErrorAlert from "./ErrorAlert";
 
 export default function RequestLookup() {
   const [requestId, setRequestId] = useState("");
@@ -74,7 +74,16 @@ export default function RequestLookup() {
             </Button>
           </Stack>
 
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && (
+            <ErrorAlert
+              message={error}
+              severity="error"
+              compact
+              onRetry={handleLookup}
+              dismissible
+              onDismiss={() => setError("")}
+            />
+          )}
 
           {status && (
             <Box sx={{ pt: 2, borderTop: "1px solid #e9e9e2" }}>
@@ -87,7 +96,9 @@ export default function RequestLookup() {
                     Request ID
                   </Typography>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                    <code
+                      style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                    >
                       {status.id}
                     </code>
                     <IconButton
@@ -129,7 +140,10 @@ export default function RequestLookup() {
                     <Typography variant="caption" color="textSecondary">
                       Credit Score
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#1b6b4a" }}>
+                    <Typography
+                      variant="h6"
+                      sx={{ fontWeight: 700, color: "#1b6b4a" }}
+                    >
                       {status.score}
                     </Typography>
                   </Box>
@@ -141,7 +155,9 @@ export default function RequestLookup() {
                       On-Chain Transaction Hash
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                      <code
+                        style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                      >
                         {status.txHash}
                       </code>
                       <IconButton
@@ -163,7 +179,9 @@ export default function RequestLookup() {
                       Wallet Address
                     </Typography>
                     <Stack direction="row" spacing={1} alignItems="center">
-                      <code style={{ fontSize: "0.75rem", wordBreak: "break-all" }}>
+                      <code
+                        style={{ fontSize: "0.75rem", wordBreak: "break-all" }}
+                      >
                         {status.wallet}
                       </code>
                       <IconButton

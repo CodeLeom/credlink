@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Stack, Typography } from "@mui/material";
 import { approveRequest, rejectRequest } from "../lib/api";
 import { useNotification } from "./NotificationProvider";
+import ErrorAlert from "./ErrorAlert";
 
 type Props = {
   id: string;
@@ -57,11 +58,15 @@ export default function ApproveReject({ id, token, onAction }: Props) {
       >
         Reject
       </Button>
-      {error ? (
-        <Typography variant="body2" color="error">
-          {error}
-        </Typography>
-      ) : null}
+      {error && (
+        <ErrorAlert
+          message={error}
+          severity="error"
+          compact
+          dismissible
+          onDismiss={() => setError("")}
+        />
+      )}
     </Stack>
   );
 }

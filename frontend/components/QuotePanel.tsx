@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { useReadContract } from "wagmi";
 import { loanManagerAbi, loanManagerAddress } from "../lib/contracts";
+import ErrorAlert from "./ErrorAlert";
 
 type Props = {
   wallet?: string;
@@ -37,9 +38,12 @@ export default function QuotePanel({ wallet }: Props) {
     return (
       <Card elevation={0} sx={{ border: "1px solid #e0e0da" }}>
         <CardContent>
-          <Typography variant="body2" color="warning.main">
-            Loan manager contract address not configured.
-          </Typography>
+          <ErrorAlert
+            message="Loan Manager contract address not configured."
+            severity="warning"
+            title="Configuration Required"
+            compact
+          />
         </CardContent>
       </Card>
     );

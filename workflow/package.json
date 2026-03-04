@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
     "simulate": "tsx src/workflow.ts --mode simulate",
     "broadcast": "tsx src/workflow.ts --mode broadcast",
     "build": "tsc"
